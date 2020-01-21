@@ -2,11 +2,24 @@
 #include <string>
 #include <unistd.h>
 #include <sys/types.h>
+#include <vector>
 
 using namespace std;
 //in file descriptor
 //fd0 =read
 //fd1 = write
+
+void getCommands(string commandList, vector<string>& commands) {
+	int lastPipe = 0;
+	for(int i = 0; i < commandList.length(); i++) {
+		if(commandList[i] == '|') {
+			commands.push_back(commandList.substr(lastPipe, i - lastPipe));
+			lastPipe = i + 1;
+		}
+	}
+	commands.push_back(commandList.substr(lastPipe, commandList.length() - lastPipe));
+}
+
 int main(){
     int array[2]; //file descriptors
     pipe(array);
