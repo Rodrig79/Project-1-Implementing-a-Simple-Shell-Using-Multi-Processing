@@ -21,7 +21,15 @@ void getCommands(string commandList, vector<string>& commands) {
 }
 
 int main(){
-    int array[2]; //file descriptors
+	
+	//test harness for getCommands function
+	vector<string> commands;
+	getCommands("Test|Command|Here", commands);
+	for(s : commands)
+		cout << s << "|"
+		
+	//test harness for pipes, dup2, and forking
+    /*int array[2]; //file descriptors
     pipe(array);
     int pid = fork();
     string userInput;
@@ -38,6 +46,6 @@ int main(){
         getline(cin, userInput);
         cout << userInput<< " From Parent";
         close(array[0]);
-    }
+    }*/
 
 }
