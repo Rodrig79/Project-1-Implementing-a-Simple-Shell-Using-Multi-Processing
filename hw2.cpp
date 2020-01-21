@@ -25,8 +25,9 @@ int main(){
 	//test harness for getCommands function
 	vector<string> commands;
 	getCommands("Test|Command|Here", commands);
-	for(s : commands)
-		cout << s << "|"
+	for(string s : commands){
+		cout << s << "|";
+	}
 		
 	//test harness for pipes, dup2, and forking
     /*int array[2]; //file descriptors
