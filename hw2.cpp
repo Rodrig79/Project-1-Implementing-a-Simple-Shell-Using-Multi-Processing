@@ -9,44 +9,113 @@ using namespace std;
 //fd0 =read
 //fd1 = write
 
+int PIPE_READ = 0;
+int PIPE_WRITE = 1;
+
 void getCommands(string commandList, vector<string>& commands) {
 	int lastPipe = 0;
+	int inQuote = false;
 	for(int i = 0; i < commandList.length(); i++) {
-		if(commandList[i] == '|') {
+		if(commandList[i] == '|' && !inQuote) {
 			commands.push_back(commandList.substr(lastPipe, i - lastPipe));
 			lastPipe = i + 1;
+		} else if (commandList[i] == '\"') {
+			inQuote = !inQuote;
 		}
 	}
 	commands.push_back(commandList.substr(lastPipe, commandList.length() - lastPipe));
 }
 
-int main(){
+void getTokens(vector<string>& commands, vector<vector<string>>& tokens) {
+	int lastCommand = 0;
+	int inQuote = false;
 	
-	//test harness for getCommands function
-	vector<string> commands;
-	getCommands("Test|Command|Here", commands);
-	for(string s : commands){
-		cout << s << "|";
+	for(string command : commands) {
+		tokens.push_back(vector<string>());
+		lastCommand = 0;
+		inQuote = false;
+		for(int i = 0; i < command.length(); i++) {
+			if((command[i] == ' ' || command[i] == 9) && !inQuote) {
+				if(lastCommand != i) {
+					tokens.back().push_back(command.substr(lastCommand, i - lastCommand));
+				}
+				lastCommand = i + 1;
+			} else if (command[i] == '\"') {
+				inQuote = !inQuote;
+			}
+		}
+		if(lastCommand != command.length()) {
+			tokens.back().push_back(command.substr(lastCommand, command.length() - lastCommand));
+		}
 	}
-		
-	//test harness for pipes, dup2, and forking
-    /*int array[2]; //file descriptors
-    pipe(array);
-    int pid = fork();
-    string userInput;
+}
 
-    if (pid == 0){//child
-        close(array[1]);// close write end in the child
-        dup2(array[0], 0);
-        getline(cin, userInput);
-        cout << userInput << " From Child";
-        close(array[1]);
-    }else{//parent
-        close(array[0]);//closing read 
-        dup2(array[1], 1);//whenever you write to 1 actually write into pipe
-        getline(cin, userInput);
-        cout << userInput<< " From Parent";
-        close(array[0]);
-    }*/
+void createPipes(int fd[][2], int numPipes) {
+	for(int i = 0; i < numPipes; i++) {
+		pipe(fd[i]);
+	}
+}
 
+int createChildren(int numChildren) {
+	int childNum = -1;
+	for(int i = 0; i < numChildren; i++) {
+		int cpid  = fork();
+		if(cpid == 0) {
+			childNum = i;
+			break;
+		}
+	}
+	return childNum;
+}
+
+void closePipes(int childNum, int fd[][2], int numPipes) {
+	for(int i = 0; i < numPipes; i++) {
+		if(childNum == i) {
+			cout << "child " << childNum << " closing read" << endl;
+			close(fd[i][PIPE_READ]);
+		} else if (childNum == i + 1 && childNum > 0) {
+			cout << "child " << childNum << " closing write" << endl;
+			close(fd[i - 1][PIPE_WRITE]);
+		} else {
+			cout << "child " << childNum << " closing both" << endl;
+			close(fd[i][PIPE_READ]);
+			close(fd[i][PIPE_WRITE]);
+		}
+	}
+}
+
+void linkPipes(int childNum, int fd[][2], int numPipes) {
+	if(childNum < numPipes) {
+		dup2(fd[childNum][PIPE_WRITE], PIPE_WRITE);
+	}
+	if(childNum > 0) {
+		dup2(fd[childNum - 1][PIPE_READ], PIPE_READ);
+	}
+}
+
+int main(){
+    
+	string command;
+	string input;
+	getline(cin, input);
+	command = input;
+	int fd[9][2];
+	int childNum;
+	vector<string> commands;
+	getCommands(command, commands);
+	vector<vector<string>> tokens;
+	getTokens(commands, tokens);
+	createPipes(fd, tokens.size() - 1);
+	childNum = createChildren(tokens.size());
+	if(childNum >= 0) {
+		closePipes(childNum, fd, tokens.size() - 1);
+		linkPipes(childNum, fd, tokens.size() - 1);
+		char* args[50];
+		for(int i = 0; i < tokens.at(childNum).size(); i++)
+			args[i] = (char*)(tokens.at(childNum).at(i).c_str());
+		args[tokens.at(childNum).size()] = (char*)NULL;
+		execvp(args[0], args);
+	} else {
+		closePipes(childNum, fd, tokens.size() - 1);
+	}
 }
