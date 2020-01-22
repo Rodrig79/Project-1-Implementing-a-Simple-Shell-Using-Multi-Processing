@@ -1,12 +1,14 @@
+
 #include <iostream>
 #include <string>
 #include <unistd.h>
 #include <sys/types.h>
 #include <vector>
+#include <cstring>
 
 using namespace std;
 //in file descriptor
-//fd0 =read
+//fd0 = read
 //fd1 = write
 
 void getCommands(string commandList, vector<string>& commands) {
@@ -23,30 +25,47 @@ void getCommands(string commandList, vector<string>& commands) {
 int main(){
 	
 	//test harness for getCommands function
-	vector<string> commands;
+	/*vector<string> commands;
 	getCommands("Test|Command|Here", commands);
 	for(string s : commands){
 		cout << s << "|";
-	}
+	}*/
 		
 	//test harness for pipes, dup2, and forking
-    /*int array[2]; //file descriptors
+    int array[2]; //file descriptors
     pipe(array);
     int pid = fork();
     string userInput;
-
+    char buf[50][100];
+    char* args[50];
     if (pid == 0){//child
         close(array[1]);// close write end in the child
         dup2(array[0], 0);
-        getline(cin, userInput);
-        cout << userInput << " From Child";
-        close(array[1]);
+        strcpy(buf[0], "ls");
+        strcpy(buf[1], "-laF");
+        strcpy(buf[2], "/");
+        for(int i = 0; i < 3; i++) {
+            args[i] = (char*)buf[i];
+        }
+        args[3] = (char*)NULL;
+        execvp(args[0], args);
+        //getline(cin, userInput);
+        //cout << userInput << " From Child";
+        //close(array[1]);
     }else{//parent
         close(array[0]);//closing read 
         dup2(array[1], 1);//whenever you write to 1 actually write into pipe
-        getline(cin, userInput);
-        cout << userInput<< " From Parent";
-        close(array[0]);
-    }*/
+        strcpy(buf[0], "tr");
+        strcpy(buf[1], "a-z");
+        strcpy(buf[2], "A-Z");
+        for(int i = 0; i < 3; i++) {
+            args[i] = (char*)buf[i];
+        }
+        args[3] = (char*)NULL;
+        execvp(args[0], args);
+        //getline(cin, userInput);
+        //cout << userInput<< " From Parent";
+        //close(array[0]);
+    }
 
 }
