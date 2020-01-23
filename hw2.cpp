@@ -19,7 +19,7 @@ void getCommands(string commandList, vector<string>& commands) {
 		if(commandList[i] == '|' && !inQuote) {
 			commands.push_back(commandList.substr(lastPipe, i - lastPipe));
 			lastPipe = i + 1;
-		} else if (commandList[i] == '\"') {
+		} else if (commandList[i] == '\"' || commandList[i] == '\'') {
 			inQuote = !inQuote;
 		}
 	}
@@ -40,7 +40,7 @@ void getTokens(vector<string>& commands, vector<vector<string>>& tokens) {
 					tokens.back().push_back(command.substr(lastCommand, i - lastCommand));
 				}
 				lastCommand = i + 1;
-			} else if (command[i] == '\"') {
+			} else if (command[i] == '\"' || command[i] == '\'') {
 				inQuote = !inQuote;
 			}
 		}
@@ -71,13 +71,13 @@ int createChildren(int numChildren) {
 void closePipes(int childNum, int fd[][2], int numPipes) {
 	for(int i = 0; i < numPipes; i++) {
 		if(childNum == i) {
-			cout << "child " << childNum << " closing read" << endl;
+			//cout << "child " << childNum << " closing read" << endl;
 			close(fd[i][PIPE_READ]);
 		} else if (childNum == i + 1 && childNum > 0) {
-			cout << "child " << childNum << " closing write" << endl;
+			//cout << "child " << childNum << " closing write" << endl;
 			close(fd[i - 1][PIPE_WRITE]);
 		} else {
-			cout << "child " << childNum << " closing both" << endl;
+			//cout << "child " << childNum << " closing both" << endl;
 			close(fd[i][PIPE_READ]);
 			close(fd[i][PIPE_WRITE]);
 		}
@@ -105,6 +105,14 @@ int main(){
 	getCommands(command, commands);
 	vector<vector<string>> tokens;
 	getTokens(commands, tokens);
+	
+	for(vector<string> t : tokens) {
+		for(string s : t) {
+			cout << s << " ";
+		}
+		cout << endl;
+	}
+	
 	createPipes(fd, tokens.size() - 1);
 	childNum = createChildren(tokens.size());
 	if(childNum >= 0) {
@@ -117,5 +125,6 @@ int main(){
 		execvp(args[0], args);
 	} else {
 		closePipes(childNum, fd, tokens.size() - 1);
+		wait();
 	}
 }
