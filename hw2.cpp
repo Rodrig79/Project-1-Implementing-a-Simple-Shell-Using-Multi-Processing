@@ -17,7 +17,9 @@ void getCommands(string commandList, vector<string>& commands) {
 	int inQuote = false;
 	for(int i = 0; i < commandList.length(); i++) {
 		if(commandList[i] == '|' && !inQuote) {
-			commands.push_back(commandList.substr(lastPipe, i - lastPipe));
+			if(lastPipe != i) {
+				commands.push_back(commandList.substr(lastPipe, i - lastPipe));
+			}
 			lastPipe = i + 1;
 		} else if (commandList[i] == '\"' || commandList[i] == '\'') {
 			inQuote = !inQuote;
@@ -41,6 +43,10 @@ void getTokens(vector<string>& commands, vector<vector<string>>& tokens) {
 				}
 				lastCommand = i + 1;
 			} else if (command[i] == '\"' || command[i] == '\'') {
+				if(inQuote) {
+					tokens.back().push_back(command.substr(lastCommand, i - lastCommand));
+				}
+				lastCommand = i + 1;
 				inQuote = !inQuote;
 			}
 		}
@@ -75,7 +81,7 @@ void closePipes(int childNum, int fd[][2], int numPipes) {
 			close(fd[i][PIPE_READ]);
 		} else if (childNum == i + 1 && childNum > 0) {
 			//cout << "child " << childNum << " closing write" << endl;
-			close(fd[i - 1][PIPE_WRITE]);
+			close(fd[i][PIPE_WRITE]);
 		} else {
 			//cout << "child " << childNum << " closing both" << endl;
 			close(fd[i][PIPE_READ]);
