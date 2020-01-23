@@ -25,7 +25,7 @@ Eddie Avendano
 -
 
 Marco Rodriguez
--Helped organize our team over github
+-Organized the team over github and managed source control
 -Created the makefile
 -Created the readme file
 -Provided testing for command tests 
