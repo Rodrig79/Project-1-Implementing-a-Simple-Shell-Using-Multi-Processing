@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <vector>
+#include <stdio.h>	
+#include <sys/wait.h>
 
 using namespace std;
 //in file descriptor
@@ -12,14 +14,21 @@ using namespace std;
 int PIPE_READ = 0;
 int PIPE_WRITE = 1;
 
+void exit(){
+	int PID, status;
+		while ((PID = wait(&status)) != -1) // prints exit status
+			cout << "Process " << PID << " exits with " << WEXITSTATUS(status);	
+
+		//exit(&status); this is what he said we should use but i couldn't get it to work
+	}
+
+
 void getCommands(string commandList, vector<string>& commands) {
 	int lastPipe = 0;
 	int inQuote = false;
-	for(int i = 0; i < commandList.length(); i++) {
+	for(int i = 0; i < (int)commandList.length(); i++) {
 		if(commandList[i] == '|' && !inQuote) {
-			if(lastPipe != i) {
-				commands.push_back(commandList.substr(lastPipe, i - lastPipe));
-			}
+			commands.push_back(commandList.substr(lastPipe, i - lastPipe));
 			lastPipe = i + 1;
 		} else if (commandList[i] == '\"' || commandList[i] == '\'') {
 			inQuote = !inQuote;
@@ -36,21 +45,17 @@ void getTokens(vector<string>& commands, vector<vector<string>>& tokens) {
 		tokens.push_back(vector<string>());
 		lastCommand = 0;
 		inQuote = false;
-		for(int i = 0; i < command.length(); i++) {
+		for(int i = 0; i < (int)command.length(); i++) {
 			if((command[i] == ' ' || command[i] == 9) && !inQuote) {
 				if(lastCommand != i) {
 					tokens.back().push_back(command.substr(lastCommand, i - lastCommand));
 				}
 				lastCommand = i + 1;
 			} else if (command[i] == '\"' || command[i] == '\'') {
-				if(inQuote) {
-					tokens.back().push_back(command.substr(lastCommand, i - lastCommand));
-				}
-				lastCommand = i + 1;
 				inQuote = !inQuote;
 			}
 		}
-		if(lastCommand != command.length()) {
+		if(lastCommand != (int)command.length()) {
 			tokens.back().push_back(command.substr(lastCommand, command.length() - lastCommand));
 		}
 	}
@@ -81,7 +86,7 @@ void closePipes(int childNum, int fd[][2], int numPipes) {
 			close(fd[i][PIPE_READ]);
 		} else if (childNum == i + 1 && childNum > 0) {
 			//cout << "child " << childNum << " closing write" << endl;
-			close(fd[i][PIPE_WRITE]);
+			close(fd[i - 1][PIPE_WRITE]);
 		} else {
 			//cout << "child " << childNum << " closing both" << endl;
 			close(fd[i][PIPE_READ]);
@@ -100,7 +105,7 @@ void linkPipes(int childNum, int fd[][2], int numPipes) {
 }
 
 int main(){
-    
+
 	string command;
 	string input;
 	getline(cin, input);
@@ -125,12 +130,16 @@ int main(){
 		closePipes(childNum, fd, tokens.size() - 1);
 		linkPipes(childNum, fd, tokens.size() - 1);
 		char* args[50];
-		for(int i = 0; i < tokens.at(childNum).size(); i++)
+		for(int i = 0; i < (int)tokens.at(childNum).size(); i++)
 			args[i] = (char*)(tokens.at(childNum).at(i).c_str());
 		args[tokens.at(childNum).size()] = (char*)NULL;
+		
 		execvp(args[0], args);
 	} else {
 		closePipes(childNum, fd, tokens.size() - 1);
-		wait();
-	}
+		exit();
+		}
 }
+
+
+
