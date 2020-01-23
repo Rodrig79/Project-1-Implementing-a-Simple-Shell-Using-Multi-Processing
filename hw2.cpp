@@ -18,7 +18,7 @@ void exit(){
 		while ((PID = wait(&status)) != -1) // prints exit status
 			cout << "Process " << PID << " exits with " << WEXITSTATUS(status);	
 
-		//exit(&status); this is what he said we should use but i couldn't get it to work
+		//exit(&status); this is what he said we should use but i couldn't get it to work. WEXITSTATUS does the same thing though
 	}
 
 
