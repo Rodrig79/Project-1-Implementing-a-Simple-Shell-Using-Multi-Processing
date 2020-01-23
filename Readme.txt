@@ -29,4 +29,4 @@ Marco Rodriguez
 -Created the makefile
 -Created the readme file
 -Provided testing for command tests 
--Provided aid in debugging our program
+-Provided aid in debugging our program such as with the parsing fuction and createPipes function
