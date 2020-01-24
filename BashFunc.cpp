@@ -50,7 +50,7 @@ void getTokens(vector<string>& commands, vector<vector<string>>& tokens) {
 void createPipes(int fd[][2], int numPipes) {
 	for(int i = 0; i < numPipes; i++) {
 		if(pipe(fd[i]) == -1) {
-			cout << "error creating pipes" << endl;
+			perror(string("error creating pipes").c_str())
 		}
 	}
 }
