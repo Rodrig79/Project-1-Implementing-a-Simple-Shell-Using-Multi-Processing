@@ -4,16 +4,14 @@ Project 1: Implementing a Simple Shell Using Multi-Processing
 ----------
 Strengths
 ----------
-•
-•
+• Passes all tests
+• Very functionally decomposed with each module performing a single action
 •
 
 ----------
 Weaknesses
 ----------
-•
-•
-•
+• Might not handle every possible error case
 
 ----------------------------
 Team Members & Contributions
