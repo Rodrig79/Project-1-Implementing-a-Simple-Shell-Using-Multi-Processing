@@ -11,7 +11,7 @@ Strengths
 ----------
 Weaknesses
 ----------
-• Might not handle every possible error case
+• Might not handle every possible error case, major ones are covered.
 
 ----------------------------
 Team Members & Contributions
