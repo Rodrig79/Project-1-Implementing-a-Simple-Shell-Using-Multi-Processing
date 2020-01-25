@@ -5,11 +5,13 @@ DEBUG = -g
 CFLAGS = -Wall -c $(DEBUG)
 LFLAGS = -Wall $(DEBUG)
 
-p1 : $(OBJS)
-    $(CC)  $(LFLAGS)  $(OBJS)  –o  p1
+output: proj1.o BashFunc.o
+	g++ proj1.o BashFunc.o -o output
 
-p1.o : p1.h  
-    $(CC)  $(CFLAGS)  p1.cpp
+proj1.o: proj1.cpp
+	g++ -c proj1.cpp
 
+BashFunc.o : BashFunc.cpp BashFunc.h
+	g++ -c BashFunc.cpp
 clean:
-    \rm *.o *~
+	\rm *.o *~
